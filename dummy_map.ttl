@@ -1,0 +1,122 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#>.
+@prefix ex: <http://example.com/ns#>.
+@prefix map: <http://mapping.local/>.
+@prefix sty: <http://purl.bioontology.org/ontology/STY/>.
+@prefix sio: <http://semanticscience.org/resource/SIO_>.
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
+@prefix ncit: <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>.
+@prefix roo: <http://www.cancerdata.org/roo/>.
+@prefix icd: <http://purl.bioontology.org/ontology/ICD10/>.
+@prefix skos: <http://www.w3.org/2008/05/skos#>.
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
+@prefix uo: <http://purl.obolibrary.org/obo/UO_>.     #https://ontobee.org/ontology/UO?iri=http://purl.obolibrary.org/obo/UO_0000036
+@prefix time: <http://www.w3.org/2006/time#>.
+ 
+
+# define patient classmap
+map:patientQuery a rr:LogicalTable;
+    rr:sqlQuery """SELECT 
+    gen_idnumber as id 
+        FROM gen_patient1""";
+    rdfs:label "";
+    skos:definition "".
+
+map:patient a rr:TriplesMap;
+	rr:logicalTable map:patientQuery;
+	rr:subjectMap [
+		rr:template "patient/{id}";
+		rr:class ncit:C16960;			# Patient
+	];
+
+	rr:predicateObjectMap [
+	    rr:predicate roo:P100018;		# has_biological_sex
+	    rr:objectMap [
+	        rr:parentTriplesMap map:gender;
+	        rr:joinCondition [
+				rr:child "id";
+	            rr:parent "id";
+	        ];
+	    ];
+	];
+
+	rr:predicateObjectMap [
+	    rr:predicate roo:P100016;		# has_age_at_diagnosis
+	    rr:objectMap [
+	        rr:parentTriplesMap map:ageAtDiagnosis;
+	        rr:joinCondition [
+				rr:child "id";
+	            rr:parent "id";
+	        ];
+	    ];
+	].
+
+
+###########################################
+# Add gender
+###########################################   
+map:genderQuery a rr:LogicalTable;
+    rr:sqlQuery """SELECT 
+    gen_idnumber as id, 
+    gen_gender 
+        FROM gen_patient1""";
+    rdfs:label "";
+    skos:definition "".
+map:gender a rr:TriplesMap;
+    rr:logicalTable map:genderQuery;
+    rr:subjectMap [
+        rr:template "patient/{id}/gender/{gen_gender}";
+        rr:class ncit:C28421; #sex
+    ];
+    rr:predicateObjectMap [
+        rr:predicate roo:P100042; #has_value
+        rr:objectMap [
+            rr:column "gen_gender";
+            rr:datatype xsd:string;
+        ];
+    ].  
+
+###########################################
+# Add age at diagnosis 
+###########################################   
+
+map:ageAtDiagnosisQuery a rr:LogicalTable;
+    rr:sqlQuery """SELECT 
+    gen_idnumber as id, 
+    gen_age  
+        FROM gen_patient1""";
+    rdfs:label "";
+    skos:definition "".
+
+map:ageAtDiagnosis a rr:TriplesMap;
+    rr:logicalTable map:ageAtDiagnosisQuery;
+    rr:subjectMap [
+        rr:template "patient/{id}/ageAtDiagnosis/{gen_age}";
+        rr:class roo:C100002; #age_at_diagnosis
+    ];
+    rr:predicateObjectMap [
+        rr:predicate roo:P100042; #has_value
+        rr:objectMap [
+            rr:column "gen_age";
+            rr:datatype xsd:string;
+        ];
+    ];
+	rr:predicateObjectMap [
+	    rr:predicate roo:P100027;		# has_unit
+	    rr:objectMap [
+	        rr:parentTriplesMap map:years;
+	        rr:joinCondition [
+				rr:child "id";
+	            rr:parent "id";
+	        ];
+	    ];
+	].
+
+map:years a rr:TriplesMap;
+    rr:logicalTable map:ageAtDiagnosisQuery; #what query do units get?   
+    rr:subjectMap [
+        rr:template "patient/{id}/years";
+        rr:class uo:0000036; #year
+    ].  
