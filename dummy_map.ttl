@@ -19,8 +19,7 @@
 # define patient classmap
 map:patientQuery a rr:LogicalTable;
     rr:sqlQuery """SELECT 
-    gen_idnumber as id 
-        FROM gen_patient1""";
+    gen_idnumber as id """;
     rdfs:label "";
     skos:definition "".
 
